@@ -36,9 +36,9 @@ cask "tow" do
   zsh_completion "completions/tow.zsh"
   fish_completion "completions/tow.fish"
 
-  postflight do
+  postflight_steps do
     on_macos do
-      run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/tow"]
+      run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{staged_path}}/tow"]
     end
   end
 end
