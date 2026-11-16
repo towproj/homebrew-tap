@@ -1,0 +1,34 @@
+# Installs tow from this tap on a real macOS machine, the way a user does, and checks the
+# installed version is the cask's. Runs after each release writes the cask, and on demand.
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths: ["Casks/**", ".github/workflows/test.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+    steps:
+      - name: brew install towproj/tap/tow
+        run: brew install towproj/tap/tow
+
+      - name: The installed tow is the cask's version
+        run: |
+          want=$(brew info --json=v2 --cask towproj/tap/tow | jq -r '.casks[0].version')
+          got=$(tow version)
+          echo "cask: $want"
+          echo "tow version: $got"
+          case "$got" in *"$want"*) ;; *) echo "::error::tow version doesn't match the cask"; exit 1 ;; esac
+          tow --help > /dev/null
+
+      - name: brew uninstall
+        run: brew uninstall --cask tow
